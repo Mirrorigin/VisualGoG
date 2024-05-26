@@ -20,6 +20,7 @@ print('-' * 30)
 # %%
 import torch
 import math
+import random
 from collections import defaultdict
 from DataProcess.DataLoader import CustomedDataset
 from DataProcess.AdaptionFunc import adapt_func
@@ -193,7 +194,6 @@ print('Graph Samples: ', n_edges)
 
 args.bach_size = math.ceil(n_edges / (math.ceil(n_train / args.image_batch_size)))
 
-neg_train_edges = adapt_func(neg_pairs, device)
 
 # =======================================================
 
@@ -282,7 +282,9 @@ for i in range(args.num_epoch):
         GoG Model
         '''
         # 考虑上述问题，对于每批次图像样本，将整个global graph送入GoG模型，而非选取related_edges送入
-        # 【待改】：negative samples可以每次随机生成而非固定
+        # 每轮批次：对neg_edges进行随机采样，使其数量与global grah的样本数量一致（即每次送入的负样本并不固定）
+        neg_sample_pairs = random.sample(neg_pairs, globe_G.number_of_edges())
+        neg_train_edges = adapt_func(neg_sample_pairs, device)
         in_data = [local_input, train_edges, neg_train_edges] # gog inputs
 
         # call GoG model. output: class embeddings
