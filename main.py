@@ -22,6 +22,7 @@ import torch
 import math
 from collections import defaultdict
 from DataProcess.DataLoader import CustomedDataset
+from DataProcess.AdaptionFunc import adapt_func
 from Tools.GlobalGraph import GlobalGraphBuilder
 from DataProcess.evaluation import eval_zs_gzsl
 # from KnnGraph import KnnGraphBuild
@@ -168,43 +169,31 @@ for idx in range(class_num):
 # =======================================================
 
 '''
+Negative Samples Generating...
+生成负样本
+'''
+
+# 采用多跳寻找最不相关的节点对，提高负样本有效性
+
+neg_pairs = negative_generator(globe_G.edges(), globe_G.number_of_edges())
+print('Negative samples generated!')
+
+# =======================================================
+
+'''
 Data Process...
 将数据适配模型输入形式
 '''
+# 原本格式：[(0，3)，(1，4)，(2，7)，(3，81)，(4，88)...]
+# 要变为： [(0，3)，(3，0), (1，4)，(4，1)，...]
 
-# 原本edges格式：[(0，3)，(1，4)，(2，7)，(3，81)，(4，88)...]
-# 需要把edges变为 [(0，3)，(3，0), (1，4)，(4，1)，...]
-
-edges_by_nodes = defaultdict(list)
-for u, v in globe_G.edges():
-    key = tuple(sorted((u, v)))
-    edges_by_nodes[key].append((u, v))
-    edges_by_nodes[key].append((v, u))
-
-sorted_edges = []
-for key, value in sorted(edges_by_nodes.items()): # 遍历字典中的键值对，按照键的顺序添加到列表中
-    sorted_edges.extend(value) # 这时，列表的内容是：[(0, 999), (999, 0), (1, 206), (206, 1), (1, 899), (899, 1)]
-
-train_edges = np.array(sorted_edges).T
-train_edges = torch.tensor(train_edges)
-train_edges = train_edges.to(args.device)
-
+train_edges = adapt_func(globe_G.edges(), device)
 n_edges = train_edges.shape[1]
 print('Graph Samples: ', n_edges)
 
 args.bach_size = math.ceil(n_edges / (math.ceil(n_train / args.image_batch_size)))
 
-# =======================================================
-
-'''
-Negative Samples Generating...
-生成负样本
-'''
-
-# 这里仅寻找没有连接的节点对作为负样本，可以采用多跳寻找最不相关的节点对，提高负样本有效性
-
-neg_train_edges = negative_generator(train_edges, globe_G.number_of_nodes())
-print('Negative samples generated!')
+neg_train_edges = adapt_func(neg_pairs, device)
 
 # =======================================================
 
