@@ -30,6 +30,14 @@ A brief introduction to each part of the code.
 
 Load image dataset and get graph batch.
 
+- graph_batch.py
+
+  Using BFS to find most irrelated nodes and generate negative pairs.
+
+- AdaptionFunc.py
+
+  Fit the data to GoG model input form.
+
 ### Tools
 
 - GlobalGraph.py
@@ -52,4 +60,7 @@ Load image dataset and get graph batch.
 
 - [GoG] - GoG model
 - [DAZLE] - DAZLE model
+
 # VisualGoG
+
+![image](https://github.com/Mirrorigin/VisualGoG/blob/master/Model_View.png)
