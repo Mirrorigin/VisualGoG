@@ -1,5 +1,4 @@
 import torch
-import random
 import numpy as np
 from collections import defaultdict, deque
 
@@ -34,8 +33,8 @@ def negative_generator(Global_edges, sample_size):
 
     # Saving leaves pairs
     negative_pairs = []
-    # 设置为15以上时，无法找到满足对，设置为12时仅能找到18对，设置为11时仅能找到221对
     max_hop = 10 # 可找到1104对
+    # 设置为15以上时，无法找到满足对，设置为12时仅能找到18对，设置为11时仅能找到221对
 
     for i in range(len(leaves)):
         distances = bfs(tree, leaves[i])
@@ -43,9 +42,9 @@ def negative_generator(Global_edges, sample_size):
             if distances[leaves[j]] > max_hop:
                 negative_pairs.append((leaves[i], leaves[j]))
 
-    if len(negative_pairs) >= sample_size:
-        sampled_pairs = random.sample(negative_pairs, sample_size)
-    else:
+    if len(negative_pairs) < sample_size:
         raise ValueError(f"节点对的数量少于指定数量 {sample_size}。当前数量: {len(negative_pairs)}")
+#   else:
+#       sampled_pairs = random.sample(negative_pairs, sample_size)
 
-    return sampled_pairs
+    return negative_pairs
